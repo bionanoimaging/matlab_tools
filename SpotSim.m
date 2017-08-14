@@ -1,0 +1,105 @@
+% SpotSim : A simulation segmenting overlapping spots of different sizes. A study for PALM/STORM
+%
+NumSpots=25;  % Where is the problem?? For largern numbers of spots it suddenly stops converging and the widths are not updated!
+% The gradients were checked and are fine. What is the matter? Something wrong with the iterations scheme?
+ImSize=128;
+SigMin = 5;
+SigMax = 10;
+IMin = 100;
+IMax = 200;
+Bg = 13;
+Intensity = rand(1,NumSpots) * (IMax - IMin) + IMin;
+posX=rand(1,NumSpots)*ImSize;
+posY=rand(1,NumSpots)*ImSize;
+sigX=rand(1,NumSpots)* (SigMax - SigMin) + SigMin;
+sigY=rand(1,NumSpots)* (SigMax - SigMin) + SigMin;
+spotList=[Intensity;posX;posY;sigX;sigY]';
+[spotIm,Meas,showIm]=DrawSpots(spotList,ImSize,Bg)
+tic
+[spots,Bg]=DetectSpots(Meas, 45, 45.0, 2,'idiv');
+% [spots,Bg]=DetectSpots(Meas,100, 745.0, 4,'idiv');
+toc
+[spotIm2,MeasTmp,showIm2]=DrawSpots(spots',ImSize,Bg);
+showIm2
+spotIm2
+Meas-spotIm2
+
+
+% Lets to a test on precision with different fits
+NumSpots=1;
+MyError=zeros(NumSpots,5)
+ImSize=32;
+SigMin = 3;
+SigMax = 5;
+IMin = 10;
+IMax = 20;
+Bg=5;
+for n=1:200
+    Intensity = rand(1,NumSpots) * (IMax - IMin) + IMin;
+    posX=(rand(1,NumSpots)-1)*2+ImSize/2;
+    posY=(rand(1,NumSpots)-1)*2+ImSize/2;
+    sigX=rand(1,NumSpots)* (SigMax - SigMin) + SigMin;
+    sigY=rand(1,NumSpots)* (SigMax - SigMin) + SigMin;
+    spotList=[Intensity;posX;posY;sigX;sigY]';
+    [spotIm,Meas,showIm]=DrawSpots(spotList,ImSize,Bg);
+
+    fprintf('Simulation Nr. %d, PosX %g PosY %g\n',n,posX,posY);
+
+    % [spots,Bg]=DetectSpots(Meas,30, 40000.0, 8,'mse');
+    [spots, res, fitted, residual] = FitDataNDFastMask([Bg , (IMin+IMax)/2 , ImSize/2,ImSize/2, (SigMin+SigMax)/2,(SigMin+SigMax)/2], [0 0 0 0 0 0],Meas, 2, 30, 'mse');
+    MyErrorMSE(n,:)=spots(:)-[Bg;spotList(:)];
+
+    %[spots,Bg]=DetectSpots(Meas,30, 40000.0, 8,'idiv');
+    [spots, res, fitted, residual] = FitDataNDFastMask([Bg , (IMin+IMax)/2 , ImSize/2,ImSize/2, (SigMin+SigMax)/2,(SigMin+SigMax)/2], [0 0 0 0 0 0],Meas, 2, 30, 'idiv');
+    MyErrorIDIV(n,:)=spots(:)-[Bg;spotList(:)];
+
+    %[spots,Bg]=DetectSpots(Meas,30, 40000.0, 8,'fidiv');
+    [spots, res, fitted, residual] = FitDataNDFastMask([Bg , (IMin+IMax)/2 , ImSize/2,ImSize/2, (SigMin+SigMax)/2,(SigMin+SigMax)/2], [0 0 0 0 0 0],Meas, 2, 30, 'fidiv');
+    MyErrorFAST(n,:)=spots(:)-[Bg;spotList(:)];
+    
+    spots = FitOneGaussFast(Bg, Meas,'IntBg');
+    MyErrorDirect(n,:)=[Bg;spots(:)]-[Bg;spotList(:)];
+
+    spots = FitOneGaussFast(Bg, Meas,'Int');
+    MyErrorDirectInt(n,:)=[Bg;spots(:)]-[Bg;spotList(:)];
+
+    spots = FitOneGaussFast(Bg, Meas,'COM');
+    MyErrorDirectCOM(n,:)=[Bg;spots(:)]-[Bg;spotList(:)];
+end
+fprintf('MSEStdDev %g, %g, %g, %g, %g, %g\n',sqrt(var(MyErrorMSE)));
+fprintf('IDIVStdDev %g, %g, %g, %g, %g, %g\n',sqrt(var(MyErrorIDIV)));
+fprintf('FASTStdDev %g, %g, %g, %g, %g, %g\n',sqrt(var(MyErrorFAST)));
+fprintf('DirectStdDev %g, %g, %g, %g, %g, %g\n',sqrt(var(MyErrorDirect)));
+fprintf('DirectIntStdDev %g, %g, %g, %g, %g, %g\n',sqrt(var(MyErrorDirectInt)));
+fprintf('DirectCOMStdDev %g, %g, %g, %g, %g, %g\n\n',sqrt(var(MyErrorDirectCOM)));
+
+fprintf('MSE_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorMSE));
+fprintf('IDIV_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorIDIV));
+fprintf('FAST_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorFAST));
+fprintf('Direct_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorDirect));
+fprintf('DirectInt_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorDirectInt));
+fprintf('DirectCOM_Bias %g, %g, %g, %g, %g, %g\n',mean(MyErrorDirectCOM));
+
+
+% For gradient testing
+% a=noise(51.2*exp(-((xx(20,20,'corner')-8).^2/(3^2)+(yy(20,20,'corner')-11.2).^2/(4^2)))+33,'poisson');
+% startvec = [10 30 10 8 2 2];
+% [params, res, fitted, residual] = FitDataNDFastMask(startvec, [0 0 0 0 0 0],a, 2, 300, 'idiv',0,[5 5])
+% startvec = [13 75.4425   28.0000  255.0000    4.0000    4.0000];
+startvec=initParms;
+startvec=params;
+[res, mygrad, fitted,residual] = MultiGaussSigmaMSE(startvec'); 
+eps=0.01;
+dmax=15;
+for d=1:dmax
+  s2=startvec;
+  s2(end-dmax+d)=s2(end-dmax+d)+eps;
+  [res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(s2'); fprintf('dim: %d, mygrad %g, numerical %g\n',d,mygrad(end-dmax+d),(res2-res)/eps);
+end
+
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[eps 0 0 0 0 0]'); fprintf('mygrad %g, numerical %g\n',mygrad(1),(res2-res)/eps)
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[0 eps 0 0 0 0]'); fprintf('mygrad %g, numerical %g\n',mygrad(2),(res2-res)/eps)
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[0 0 eps 0 0 0]'); fprintf('mygrad %g, numerical %g\n',mygrad(3),(res2-res)/eps)
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[0 0 0 eps 0 0]'); fprintf('mygrad %g, numerical %g\n',mygrad(4),(res2-res)/eps)
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[0 0 0 0 eps 0]'); fprintf('mygrad %g, numerical %g\n',mygrad(5),(res2-res)/eps)
+% eps=0.01;[res2, mygrad, fitted2,residual2] = MultiGaussSigmaMSE(startvec'+[0 0 0 0 0 eps]'); fprintf('mygrad %g, numerical %g\n',mygrad(6),(res2-res)/eps)

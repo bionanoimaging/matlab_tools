@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+# use the following command to convert all khoros panes:
+# AllKhorosToML /usr/local/KhorosInstall/*/objects/*/*/uis/*.pane
+foreach (@ARGV) {
+@fname = split /[\/\.]/,$_;
+$fname = @fname[-2];
+$helpfile = "";
+$nomore = "";
+foreach(@fname)
+  {
+    if ($_ eq 'uis')
+      {
+	$nomore="true";
+      }
+    if ($nomore eq '')
+      {
+	$helpfile="$helpfile\/$_";
+      }
+  }
+$helpfile="$helpfile\/help\/$fname.hlp";
+
+`./KhorosToMatLab $_ $helpfile > Converted/k$fname.m`
+}
