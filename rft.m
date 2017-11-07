@@ -13,7 +13,11 @@ end
 % in=readim('orka'); %test object (display the ft in log stretch)
 b=fftn(double(in)); % dip_image Fourier Transform: whole plane
 
-b=dip_image(b)/sqrt(prod(size(b)));
+if isa(in,'dip_image') 
+    b=dip_image(b)/sqrt(prod(size(b)));
+else
+    b=dip_image(b);
+end
 out=fft2rft(b);
 if ~isa(in,'dip_image')
     out=double(out); % convert back to double

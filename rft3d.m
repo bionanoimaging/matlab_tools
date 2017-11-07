@@ -6,9 +6,13 @@ if numdims > 4
 else
     in=expanddim(in,4);
 end
-out=newim(size(in,1),floor(size(in,2)/2)+1,size(in,3),size(in,4),'scomplex');
-for e=0:size(in,4)-1
+if (size(in,4) > 1)
+    out=newim(size(in,1),floor(size(in,2)/2)+1,size(in,3),size(in,4),'scomplex');
+    for e=0:size(in,4)-1
         out(:,:,:,e)=rft(squeeze(in(:,:,:,e)));  % performs individual rift for each element
+    end
+else
+        out=rft(squeeze(in));  % performs individual rift for each element
 end
 
 if numdims < 4

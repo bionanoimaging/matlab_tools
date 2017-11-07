@@ -32,7 +32,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
     char* matlabtype;
     char *input_buf;
     int   buflen,buflen2,status;
-  
+
+    //printf("int is %d\n",sizeof(int));
+    //%printf("Long is %d\n",sizeof(long));
+    //%printf("size_T is %d\n",sizeof(size_t));
+    
     if (nrhs != 3) 
          mexErrMsgTxt("3 inputs required.");
     if (mxIsChar(prhs[0]) != 1)

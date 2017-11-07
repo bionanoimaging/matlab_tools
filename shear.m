@@ -5,6 +5,9 @@
 %
 
 function res=shear(img,shearvec,doExpand)
+if nargin < 3 
+    doExpand=0;
+end
 if doExpand
     newsize2d=ceil(size2d(img) + abs(shearvec * size(img,3)));
     img=extract(img,[newsize2d size(img,3) size(img,4)]);  % will keep other dimensions as they are

@@ -2,7 +2,9 @@
 function out=rift(in)
 wasdip=isa(in,'dip_image');
 in=double(rft2fft(in));
-out=real(ifftn(in))*sqrt(prod(size(in)));
 if wasdip
+    out=real(ifftn(in))*sqrt(prod(size(in)));
     out=dip_image(out);
+else
+    out=real(ifftn(in));
 end
