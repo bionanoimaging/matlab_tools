@@ -1,5 +1,5 @@
-% res=WeightedAvg(Imgs,OTFs,mydim) : calculate the weighted averaging of a number of datasets given a number of OTFs.
-% Imgs: Input images to calculate the weighted average from
+% res=WeightedAvg(FTImgs,OTFs,mydim) : calculate the weighted averaging of a number of datasets given a number of OTFs.
+% FTImgs: Input (Fourier transformed) images to calculate the weighted average from
 % OTFs: Transfer functions (i.e. strength of each image)
 % mydim: dimension along which the various images (and OTFs) are stacked (default is last dimension = ndims(Imgs)).
 % res: Weighted average

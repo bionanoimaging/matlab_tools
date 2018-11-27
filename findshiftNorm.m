@@ -1,15 +1,24 @@
-% [shiftvec,shifted]=findshiftNorm(img,ref,minmap) : Finds the shift between images, but corrects for the relative overlap area
+% [shiftvec,shifted]=findshiftNorm(img,ref,minmap,doPhaseOnly,doCOM) : Finds the shift between images, but corrects for the relative overlap area
 % img : image to align
 % ref : reference image to align to
 % minmap :  (default 0.5)
+% doPhaseOnly : flag, if true, the phase only correlation is calculated
+% doCOM : Use the center of mass of the surrounding 5x5 region to determine the subpixel shift
 %
 % Example:
-% a=extract(readim,[100 100]);
-% as=extract(shift(readim,[20.2 22.7]),[100 100]);
-% [shiftvec,shifted]=findshiftNorm(as-mean(as),a-mean(a),0.5)
+% img=readim('orka');
+% a=extract(img,[100 100]);
+% as=extract(shift(img,[20.2 22.7]),[100 100]);
+% [shiftvec,shifted]=findshiftNorm(as-mean(as),a-mean(a),0.5,1,1)
 % cat(3,a,shifted)
 
-function [shiftvec,shifted]=findshiftNorm(img,ref,minmap)
+function [shiftvec,shifted]=findshiftNorm(img,ref,minmap,doPhaseOnly,doCOM)
+if nargin < 5
+    doCOM=0;
+end
+if nargin < 4
+    doPhaseOnly=0;
+end
 if nargin < 3
     minmap=0.5;
 end
@@ -18,7 +27,11 @@ mypow=0.5;
 fimg=ft(img);
 fref=ft(ref);
 
-mycor=abs(ift(fimg .* conj(fref)));
+if doPhaseOnly
+    mycor=abs(ift(exp(i*(phase(fimg) -phase(fref)))));
+else
+    mycor=abs(ift(fimg .* conj(fref)));
+end
 %ref2=extract(ref.*ref,floor(size(ref)/2)-1,floor(size(ref)/2));  % energy (not summed, when perfectly aligned)
 %ref3=extract(ref2,floor(size(ref)/2));  % energy (not summed, when perfectly aligned)
 %ref2=ref.*ref;  % energy (not summed, when perfectly aligned)
@@ -53,7 +66,19 @@ totalmap=1-totalmap;
 totalmap(totalmap<minmap)=minmap;  % regularise it to avoid dividing by zero
 % assuming the energy to be equally 
 
-[mv,shiftvec]=max(mycor./(totalmap.^mypow));
+if (~doPhaseOnly)
+    [mv,shiftvec]=max(mycor./(totalmap.^mypow));
+else
+    [mv,shiftvec]=max(mycor);
+end
+if doCOM
+    ROI=extract(mycor,[5 5],shiftvec);
+    ROI=ROI-min(ROI);
+    COMX=sum(xx(ROI) .* ROI)/sum(ROI);
+    COMY=sum(yy(ROI) .* ROI)/sum(ROI);
+    shiftvec=shiftvec+[COMX COMY];
+end
+
 shiftvec = transpose(shiftvec - floor(size(fimg)/2));
 if nargout > 1
     shifted = shiftClipFlip(img,-shiftvec);

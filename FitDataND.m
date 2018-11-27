@@ -57,7 +57,8 @@ if (0)  % old method
     options=optimset('Display','notify','TolX',10^-4,'TolFun',10^-8,'MaxIter',maxiter);
     [params,msevalue]=fminsearch(minfunc,InitParm,options,myfunct,Data,1,Coords);
 else    % new method with smarter amd faster optimisation routine from http://www.cs.ubc.ca/~schmidtm
-    options=struct('Display','off','notify',1,'numDiff',1,'TolX',10^-4,'TolFun',10^-8,'MaxIter',maxiter);
+    %options=struct('Display','off','notify',1,'numDiff',2,'TolX',10^-4,'TolFun',10^-8,'MaxIter',maxiter);
+    options=struct('Display','off','notify',1,'numDiff',2,'TolX',10^-6,'TolFun',10^-9,'OptTol',10^-9,'ProgTol',10^-12,'MaxIter',maxiter);
     [params,msevalue,moreinfo]=minFunc(minfunc,InitParm',options,myfunct,Data,Weight,Coords);
     params=params';
 end

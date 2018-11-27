@@ -1,3 +1,9 @@
+% hout=fixWFPSF(h,arange) : fixes the MidZ problem of simulated PSFs.
+% h: input PSF
+% arange: range in Z indices to force to be equal in integral
+%
+% hout: output PSF
+%
 function h=fixWFPSF(h,arange)
 if nargin<2
     arange=0.35;

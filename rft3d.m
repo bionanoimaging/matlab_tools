@@ -19,3 +19,4 @@ if numdims < 4
     mysize=size(out);
     out=reshape(out,mysize(1:numdims));
 end
+out=expanddim(out,ndims(in));

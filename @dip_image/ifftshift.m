@@ -3,7 +3,7 @@ function out=ifftshift(in)
 
 %safety unequal sizes
 if isa(in,'dip_image') 
-    out=dip_image(ifftshift(double(in)));
+    out=expanddim(dip_image(ifftshift(double(in))),ndims(in));
 else
     out=builtin('ifftshift',in);    % call the builtin version
 end

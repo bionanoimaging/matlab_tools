@@ -12,7 +12,7 @@ if (size(in,4) > 1)
         out(:,:,:,e)=rift(squeeze(in(:,:,:,e)));  % performs individual rift for each slice
     end
 else
-    out=rift(squeeze(in));  % performs individual rift for each element
+    out=rift(in);  % performs individual rift for each element
 end
 
 if numdims < 4

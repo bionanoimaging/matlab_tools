@@ -203,6 +203,11 @@ elseif exist('RWLSPoisson')
    myStd=sqrt([0 vv]);  % add an empty datapoint and convert variance to StdDev.
    % errorbar([0 x]+bgMean,fity,myStd,myStd,'r');
    plot([0 x]+bgMean,fity,'r');
+   if any(rg<0)
+   else
+       x=x(mask);
+       fity=[0 fity(mask)];
+   end
    plot([0 x]+bgMean,fity-myStd,'r:');
    plot([0 x]+bgMean,fity+myStd,'r:');
    hold off

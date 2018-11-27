@@ -2,8 +2,8 @@
 % This function plotWithColorbar(data, varargin) plots a dip_image input data as follows: 
 %
 %
-%
-%
+% Example:
+% plotWithColorbar(readim)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function plotWithColorbar(data, varargin)

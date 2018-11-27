@@ -1,6 +1,6 @@
 function res=ifftshift3d(animg,varargin)
 if ndims(animg) > 3
-    if isa(animg,'dip_image')
+    if isa(animg,'dip_image') || (isa(animg,'cuda') && isDip(animg))
         off=1;
     else
         off=0;
