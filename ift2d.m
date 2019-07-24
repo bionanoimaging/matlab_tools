@@ -4,3 +4,6 @@ transvec=zeros(1,ndims(imgin));
 transvec(1:2)=1;
 
 imgout=dip_fouriertransform(imgin,'inverse',transvec);
+if ~isDipImage(imgin)
+    imgout=double(imgout);
+end

@@ -6,7 +6,14 @@ function imgout=ift1d(imgin,mydir)  % Two dimensional inverse Fourier transform
 if nargin < 2
     mydir=1;
 end
-transvec=zeros(1,ndims(imgin));
+nd=ndims(imgin);
+if nd==2 && size(imgin,1)==1
+    nd=1;
+end
+transvec=zeros(1,nd);
 transvec(mydir)=1;
 
 imgout=dip_fouriertransform(imgin,'inverse',transvec);
+if ~isDipImage(imgin)
+    imgout=double(imgout);
+end

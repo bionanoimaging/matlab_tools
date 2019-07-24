@@ -1,4 +1,4 @@
-% function p = PeriodicSmooth(img): generate the periodic component of a 2D image which dim the border of an image and avoid discontinuities in Fourier space
+% function p = PeriodicSmooth(img): generate the periodic component of a 2D image which dim the border of an image and avoid discontinuities in Fourier space according to Moisan et al.
 %
 % img : Input image to smoothen
 % eg: 

@@ -37,7 +37,8 @@ end
 if ~isempty(myCOV) 
     SigmaSqr = 1.0;
 else
-    SigmaSqr = abs(SubSlice(OTFs,mydim)); % takes the middle by default
+    SigmaSqr = abs(MidVal(OTFs,[1 2])); % takes the middle by default
+%    SigmaSqr = abs(OTFs(MidPosX(OTFs),MidPosY(OTFs),:,:));
     OTFs = OTFs ./ sqrt(SigmaSqr);   % Normalize all OTFs to have uniform variance. E.g. a second OTF which has a small value at zero transfers only few photons and therefore needs to be scaled up to weigh more.
 end
 if nargin < 2 || isempty(FTImgs)

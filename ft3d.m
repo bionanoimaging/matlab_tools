@@ -6,4 +6,6 @@ end
     resVec=zeros(1,ndims(img));
     resVec(1:3)=1;
     res=dip_fouriertransform(img,'forward',resVec);
+if ~isDipImage(img)
+    res=double(res);
 end

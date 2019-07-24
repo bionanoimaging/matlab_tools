@@ -16,7 +16,10 @@ else
 end
 
 if numdims < 4
+    if ndims(out) ~= numdims
+        out=expanddim(out,numdims);
+    end
     mysize=size(out);
     out=reshape(out,mysize(1:numdims));
 end
-out=expanddim(out,ndims(in));
+out=expanddim(out,numdims);
