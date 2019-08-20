@@ -7,11 +7,17 @@
 clear all
 % a1=readim('KH50CARS128.tif');
 cd \\mars\user\rheintzmann\MATLAB\TobiasMeyer\
-a1=readim('Data/KH50CARS.tif');  % a 7680x7680 example dataset
+if (1)
+    a1=readim('KH50CARS128.tif');  % a the 4x4 downsampled 7680x7680 example dataset
+    downsampled = 4
+else
+    a1=readim('Data/KH50CARS.tif');  % a 7680x7680 example dataset
+    downsampling = 1
+end
 % [scale, offset] = pcfo(a1(0:4:end,0:4:end));  % Not needed! Just used here to estimate the offset (where is the zero intensity?)
 offset = 0;  % zero intensity level
 
-tilesize=[512 512];
+tilesize=[512 512]/downsampled;
 %tilesize=[128 128];
 smaller=size(a1) ./ tilesize;
 % Determine and Correct the mean uneven illumination
