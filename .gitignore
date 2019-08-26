@@ -1,0 +1,7 @@
+
+readkhoros_info.mexmaci64
+*.dll
+*.lib
+myWisdomFile.txt
+khoros_tools.tgz
+*.cpp~
