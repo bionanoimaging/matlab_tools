@@ -5,7 +5,7 @@
 % Example:
 % rrscale([20 20],[1 2])
 
-function res=rrscale(mysize,myscales)
+function res=rrscale(mysize,myscales,varargin)
 if nargin < 1
     mysize=[256 256];
 end
@@ -16,8 +16,8 @@ if numel(myscales) < numel(mysize)
     myscales(numel(myscales)+1:numel(mysize))=0;
 end
 
-res = (ramp(mysize,1).*myscales(1))^2;
+res = (ramp(mysize,1,varargin{:}).*myscales(1))^2;
 for d=2:numel(mysize)
-    res = res + (ramp(mysize,d).*myscales(d))^2;
+    res = res + (ramp(mysize,d,varargin{:}).*myscales(d))^2;
 end
 res = sqrt(res);
