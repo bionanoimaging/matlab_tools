@@ -66,12 +66,15 @@
 % 2 December 2008, Setting dynamic Java path, no need to edit classpath.txt. (CL)
 % 17 Feb 2009, added return of figure handle (BR)
 % 17 December 2009: Using new function MATLABVER_GE.
+% 2019: Added functionality both on the Matlab and Java side. Allowing for live uptdates. Fixed a bug with sint16 display. Rainer Heitzmann
 
 function out=view5d(varargin)
 
 % Parse input
 whe = 'direct';
 ts = 0;
+ElementNum=0;
+
 switch nargin
 case 1
 case 2
@@ -215,28 +218,91 @@ if direct
       % Make a one dimensional flat input array
       inr = reshape(real(in),1,prod(sz));
       ini = reshape(imag(in),1,prod(sz));
-      in5df = dip_array(reshape([inr ini],1,2*prod(sz)));
+      in5df = dip_array(reshape([inr ini],1,2*prod(sz)));      
       if strcmp(whe,'direct')
           out = View5D.Start5DViewerC(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
+          out.AddElement(angle(dip_array(in(:))),sz(1),sz(2),sz(3),sz(4),sz(5));          
+          ElementNum = [0:out.getNumElements()-1];
+          out.ProcessKeyMainWindow('O'); % logarithmic display mode
+          out.ProcessKeyMainWindow('e'); % advance an element
+          for q=1:12
+              out.ProcessKeyMainWindow('c'); % cyclic colormap
+          end
+          out.ProcessKeyMainWindow('t'); % min max adjustment
+          out.ProcessKeyMainWindow('v'); % 
+          out.ProcessKeyMainWindow('V'); % 
+          out.ProcessKeyMainWindow('E'); % Back to previous element
+          out.ProcessKeyMainWindow('C'); % multicolor on
+          out.UpdatePanels();
       elseif strcmp(whe,'newElement')
           out = myViewer.AddElementC(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
+          myphase = dip_array(reshape(angle(in),1,prod(sz)));
+          out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));          
+          ElementNum = out.getNumElements()-1;
+          out.ProcessKeyMainWindow('O'); % logarithmic display mode
+          out.ProcessKeyMainWindow('e'); % advance an element
+          for q=1:12
+              out.ProcessKeyMainWindow('c'); % cyclic colormap
+          end
+          out.ProcessKeyMainWindow('t'); % min max adjustment
+          out.ProcessKeyMainWindow('v'); % 
+          out.ProcessKeyMainWindow('V'); % 
+          out.ProcessKeyMainWindow('E'); % Back to previous element
+          out.ProcessKeyMainWindow('C'); % multicolor on
       elseif strcmp(whe,'replaceElement')
-          myViewer.ReplaceDataC(ElementNum,0,in5df);
+          out = myViewer;
+          % amplitude
+          if (ElementNum >= out.getNumElements())
+              out = myViewer.AddElementC(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
+              ElementNum = out.getNumElements()-1;
+          else
+              myViewer.ReplaceDataC(ElementNum,0,in5df);
+          end
+          % now phase
+          myphase = dip_array(reshape(angle(in),1,prod(sz)));
+          ElementNum = ElementNum+1;
+          if (ElementNum >= out.getNumElements())
+              out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));
+              ElementNum = out.getNumElements()-1;
+          else
+              myViewer.ReplaceData(ElementNum,0,myphase);
+          end
       end
    else
       % Make a one dimensional flat input array
       in5d = dip_array(reshape(in,1,prod(sz)));
+      if isa(in5d,'uint16')
+          in5d=char(in5d);  % only this way java understands this type...
+      end
       if strcmp(whe,'direct')
           out = View5D.Start5DViewer(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+          ElementNum = [0:out.getNumElements()-1];
       elseif strcmp(whe,'newElement')
           out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+          ElementNum = out.getNumElements()-1;
       elseif strcmp(whe,'replaceElement')
-          myViewer.ReplaceData(ElementNum,0,in5d);
+          out = myViewer;
+          if (ElementNum >= out.getNumElements())
+              out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+              ElementNum = out.getNumElements()-1;
+          else
+              myViewer.ReplaceData(ElementNum,0,in5d);
+          end
       end
    end
-else
+   out.UpdatePanels();
+ else
    view5d_image_extern(in);
    out =[];
+end
+
+if ~isempty(in.pixelsize)
+    % myViewer.SetAxisScalesAndUnits(int elementNum, int timeNum, double SV, double SX,double SY,double SZ,double SE,double ST,double OV,double OX,double OY,double OZ,double OE,double OT,String NameV, String Names[],String UnitV, String Units[]) {
+    AxisNames={'X','Y','Z','E','T'};
+    AxisUnits=[in.pixelunits(1:3),'a.u.','a.u.'];
+    for n=1:numel(ElementNum)
+        out.SetAxisScalesAndUnits(ElementNum(n), 0, 1.0, in.pixelsize(1),in.pixelsize(2),in.pixelsize(1),1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,'intensity', AxisNames,'a.u.', AxisUnits);
+    end
 end
 
 %-----------------------------------------------------------------------
@@ -262,7 +328,7 @@ end
 fn = [base,'dipimage_view5d'];
 
 mdt = {'uint8',    1, 8,  'Byte'
-       'uint16',   2, 16, 'Short'
+       'uint16',   2, 16, 'Char'
        'uint32',   4, 32, 'Long'
        'sint8',    1, 8,  'Byte'
        'sint16',   2, 16, 'Short'

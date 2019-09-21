@@ -47,7 +47,7 @@ if length(center) < length(isize)
 end
 N=ndims(img);
 if isa(img,'cuda')
-    out=newim(asize,datatype(img));   % problems with type conversion: +value;
+    out=newim_cuda(asize,datatype(img));   % problems with type conversion: +value;
 else
     tmp=use_newim_cuda;
     use_newim_cuda=0;

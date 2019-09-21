@@ -5,7 +5,7 @@ if nargin < 2
     transformDirs=ones(1,ndims(in));
 end
 copydir = find(transformDirs,1,'first');
-if isa(in,'dip_image')
+if isa(in,'dip_image') || (isa(in,'cuda') && isDip(in))
     if copydir==1 && length(transformDirs) > 1 && transformDirs(2)==1
         copydir=2;
     end
@@ -17,14 +17,14 @@ end
 subrange = repmat({':'}, 1, ndims(in));  % default for the non-transformed directions
 for d=1:ndims(in)
     if transformDirs(d)
-        if isa(in,'dip_image')
+        if isa(in,'dip_image') || (isa(in,'cuda') && isDip(in))
             subrange(d)={[0,size(in,d)-1:-1:1]};
         else
             subrange(d)={[1,size(in,d):-1:2]};
         end
     end
 end
-if isa(in,'dip_image') 
+if isa(in,'dip_image')  || (isa(in,'cuda') && isDip(in))
     subrange(copydir)={size(in,copydir)-2:-1:1};
 else
     subrange(copydir)={size(in,copydir)-1:-1:2};
