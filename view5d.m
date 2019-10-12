@@ -195,9 +195,9 @@ sz = imsize(in);
 if ts
    % The user asks for a time series -- move the last data dimension to the 5th dimension
    t = find(sz>1); t = t(end);
-   if t<3 | t==5
+   if t<3 || t==5
       t = [];
-   elseif t==4 & elements
+   elseif t==4 && elements
       sz(t) = 1;
       t = find(sz>1); t = t(end);
       if t<3
@@ -211,6 +211,21 @@ if ts
       in = permute(in,order);
    end
 end
+
+if strcmp(whe,'newElement')
+    fprintf('Adding Element: SizeE:%d, SizeT:%d \n',sz(4),sz(5));
+  if sz(4) > 1 || sz(5) > 1
+    for t=1:sz(5)
+        for e=1:sz(4)
+            fprintf('Adding Element: %d, Time: %d\n',e,t);
+            myViewer=view5d(in(:,:,:,e-1,t-1),ts,'newElement',myViewer);
+        end
+    end
+    out = myViewer;
+    return
+  end
+end
+
 
 % Start the applet
 if direct
@@ -277,7 +292,7 @@ if direct
       if strcmp(whe,'direct')
           out = View5D.Start5DViewer(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
           ElementNum = [0:out.getNumElements()-1];
-      elseif strcmp(whe,'newElement')
+      elseif strcmp(whe,'newElement')          
           out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
           ElementNum = out.getNumElements()-1;
       elseif strcmp(whe,'replaceElement')
