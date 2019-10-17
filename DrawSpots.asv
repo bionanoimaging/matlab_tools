@@ -1,0 +1,15 @@
+function [spotIm,Meas,showIm]=DrawSpots(SpotList,ImSize,Bg)
+NumSpots = size(SpotList,2);
+spotIm = newim([ImSize ImSize])+Bg;
+showIm = newim([ImSize ImSize])+Bg;
+for j=1:NumSpots
+    Intensity = SpotList(j,1);
+    posX = SpotList(j,2);
+    posY = SpotList(j,3);
+    sigX = SpotList(j,4);
+    sigY = SpotList(j,5);
+    spot = Intensity*exp(- (((xx([ImSize ImSize]) - posX)/sigX) .^2 + ((yy([ImSize ImSize]) - posY)/sigY) .^2));
+    showIm = showIm+Intensity*(abs(xx([ImSize ImSize]) - posX)<sigX) * (abs(yy([ImSize ImSize]) - posY)<1.5)+abs(xx([ImSize ImSize]) - posX)<1.5) * (abs(yy([ImSize ImSize]) - posY)<sig)
+    spotIm =spotIm + spot;
+    spotList = [spotList;[Intensity,posX,posY,sigX,sigY]];
+end
