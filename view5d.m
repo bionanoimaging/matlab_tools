@@ -95,6 +95,13 @@ case 5
    whe = varargin{3};
    myViewer = varargin{4};
    ElementNum = varargin{5};
+   TimeNum = 0;
+case 6
+   ts = varargin{2};
+   whe = varargin{3};
+   myViewer = varargin{4};
+   ElementNum = varargin{5};
+   TimeNum = varargin{6};
 otherwise
    error('Too few/many input arguments');
 end
@@ -110,6 +117,11 @@ switch whe
       if nargin < 4
           error('The option ''newElement'' requires view5d to be called with a java instance as 4th argument')
       end
+   case 'newTime'
+      direct = 1;
+      if nargin < 4
+          error('The option ''newTime'' requires view5d to be called with a java instance as 4th argument')
+      end
    case 'replaceElement'
       direct = 1;
       if nargin < 4
@@ -118,10 +130,13 @@ switch whe
       if nargin < 5
           ElementNum=0;
       end
+      if nargin < 6
+          TimeNum=0;
+      end
    case 'extern'
       direct = 0;
    otherwise
-      error('MODE string should be ''direct'', ''newElement'', ''replaceElement'' or ''extern''.')
+      error('MODE string should be ''direct'', ''newElement'', ''newTime'', ''replaceElement'' or ''extern''.')
 end
 
 if direct
@@ -142,7 +157,9 @@ if direct
       jp = javaclasspath('-all');
       jarfile = jarfilename;
       if ~any(strcmp(jp,jarfile))
-         javaaddpath(jarfile);
+         if ~any(endsWith(jp,'View5D.jar'))
+            javaaddpath(jarfile);
+         end
       end
       % Force the loading of the JAR file
       import view5d.*
@@ -180,7 +197,7 @@ if isvector(in)
       in = iterate('expanddim',in,3);
    end
    in = array2im(in);
-   if ndims(in)==5
+   if ndims(in)==5 && size(in,5)>1 && size(in,4)==1
       in = permute(in,[1,2,3,5,4]); % the new elements dimension is 5th, should be 4th.
    end
    elements = 1;
@@ -213,12 +230,26 @@ if ts
 end
 
 if strcmp(whe,'newElement')
-    fprintf('Adding Element: SizeE:%d, SizeT:%d \n',sz(4),sz(5));
+%    fprintf('Adding Element: SizeE:%d, SizeT:%d \n',sz(4),sz(5));
   if sz(4) > 1 || sz(5) > 1
     for t=1:sz(5)
         for e=1:sz(4)
-            fprintf('Adding Element: %d, Time: %d\n',e,t);
+%            fprintf('Adding Element: %d, Time: %d\n',e,t);
             myViewer=view5d(in(:,:,:,e-1,t-1),ts,'newElement',myViewer);
+        end
+    end
+    out = myViewer;
+    return
+  end
+end
+
+if strcmp(whe,'newTime')
+    % fprintf('Adding Time: SizeE:%d, SizeT:%d \n',sz(4),sz(5));
+  if sz(5) > 1
+    for t=1:sz(5)
+        for e=1:sz(4)
+            % fprintf('Adding ElemenTime: %d, Time: %d\n',e,t);
+            myViewer=view5d(in(:,:,:,e-1,t-1),ts,'newTime',myViewer);
         end
     end
     out = myViewer;
@@ -231,9 +262,15 @@ end
 if direct
    if ~isreal(in)
       % Make a one dimensional flat input array
-      inr = reshape(real(in),1,prod(sz));
-      ini = reshape(imag(in),1,prod(sz));
-      in5df = dip_array(reshape([inr ini],1,2*prod(sz)));      
+     if isDIP2()
+         inr = reshape(real(in),1,prod(sz));
+         ini = reshape(imag(in),1,prod(sz));
+         in5df = dip_array(reshape([inr ini],1,2*prod(sz)));      
+     else
+         in = permute(in,[2,1,3,4,5]);
+         % in5df = dip_array(reshape(in,1,prod(sz)));      
+         in5df = reshape(in.Array,1,2*prod(sz));      
+     end
       if strcmp(whe,'direct')
           out = View5D.Start5DViewerC(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
           out.AddElement(angle(dip_array(in(:))),sz(1),sz(2),sz(3),sz(4),sz(5));          
@@ -264,14 +301,37 @@ if direct
           out.ProcessKeyMainWindow('V'); % 
           out.ProcessKeyMainWindow('E'); % Back to previous element
           out.ProcessKeyMainWindow('C'); % multicolor on
+      elseif strcmp(whe,'newTime')
+          myViewer.setTimesLinked(0);
+          out = myViewer.AddTime(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
+          myphase = dip_array(reshape(angle(in),1,prod(sz)));
+          out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));          
+          ElementNum = out.getNumElements()-1;
+          out.ProcessKeyMainWindow('O'); % logarithmic display mode
+          out.ProcessKeyMainWindow('e'); % advance an element
+          for q=1:12
+              out.ProcessKeyMainWindow('c'); % cyclic colormap
+          end
+          out.ProcessKeyMainWindow('t'); % min max adjustment
+          out.ProcessKeyMainWindow('v'); % 
+          out.ProcessKeyMainWindow('V'); % 
+          out.ProcessKeyMainWindow('E'); % Back to previous element
+          out.ProcessKeyMainWindow('C'); % multicolor on
       elseif strcmp(whe,'replaceElement')
           out = myViewer;
           % amplitude
+          NumTimes = out.getNumTime();
+          if TimeNum < 0
+              TimeNum = NumTimes -1;
+          end
+          if TimeNum >= NumTimes 
+              TimeNum = NmTimes-1;
+          end
           if (ElementNum >= out.getNumElements())
               out = myViewer.AddElementC(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
               ElementNum = out.getNumElements()-1;
           else
-              myViewer.ReplaceDataC(ElementNum,0,in5df);
+              myViewer.ReplaceDataC(ElementNum,TimeNum,in5df);
           end
           % now phase
           myphase = dip_array(reshape(angle(in),1,prod(sz)));
@@ -280,12 +340,16 @@ if direct
               out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));
               ElementNum = out.getNumElements()-1;
           else
-              myViewer.ReplaceData(ElementNum,0,myphase);
+              myViewer.ReplaceData(ElementNum,TimeNum,myphase);
           end
       end
    else
       % Make a one dimensional flat input array
-      in5d = dip_array(reshape(in,1,prod(sz)));
+      if isDIP2()
+          in5d = dip_array(reshape(in,1,prod(sz)));
+      else
+          in5d = dip_array(reshape(permute(in,[2,1,3,4,5]),1,prod(sz)));
+      end
       if isa(in5d,'uint16')
           in5d=char(in5d);  % only this way java understands this type...
       end
@@ -295,13 +359,24 @@ if direct
       elseif strcmp(whe,'newElement')          
           out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
           ElementNum = out.getNumElements()-1;
+      elseif strcmp(whe,'newTime')          
+          myViewer.setTimesLinked(0);
+          out = myViewer.AddTime(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+          ElementNum = out.getNumElements()-1;
       elseif strcmp(whe,'replaceElement')
           out = myViewer;
+          NumTimes = out.getNumTime();
+          if TimeNum < 0
+              TimeNum = NumTimes -1;
+          end
+          if TimeNum >= NumTimes 
+              TimeNum = NmTimes-1;
+          end
           if (ElementNum >= out.getNumElements())
               out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
               ElementNum = out.getNumElements()-1;
           else
-              myViewer.ReplaceData(ElementNum,0,in5d);
+              myViewer.ReplaceData(ElementNum,TimeNum,in5d);
           end
       end
    end

@@ -26,7 +26,11 @@ end
     
 part=part*2; %this is for half of the side...
 origdims=ndims(im);
-mypref=dipgetpref('DerivativeFlavour');
+try
+    mypref=dipgetpref('DerivativeFlavour');
+catch
+    mypref=[];
+end
 
 if nargin<4 || isempty(shape)
     shape = 1; %     'square shape';
@@ -152,7 +156,9 @@ if method == 1  % dim down to zero
     de = im .* de;
      %de = im .* de;    
 elseif method >= 2 
-    dipsetpref('DerivativeFlavour','fourier');  % ensure the gaussian filtering is a cyclic convolution
+    if ~isempty(mypref)
+        dipsetpref('DerivativeFlavour','fourier');  % ensure the gaussian filtering is a cyclic convolution
+    end
     if shape == 0
         error('Gaussian blur of the edges is only allowed for square shape (shape=1)');
     end
@@ -382,7 +388,9 @@ elseif method >= 2
 else
         error('DampEdges: Unknown method. Only 1 and 2 are allowed.')    
 end
-dipsetpref('DerivativeFlavour',mypref)
+if ~isempty(mypref)
+    dipsetpref('DerivativeFlavour',mypref)
+end
 de=expanddim(de,origdims);
 
 if nargout > 1
