@@ -189,8 +189,8 @@ if any(sz(1:2)==1)
 end
 if isvector(in)
    % The array elements need to go along the 4th dimension, and not become the time axis later on.
-   if length(sz)>4
-      error('Only available for 2, 3 and 4D tensor images.');
+   if length(sz)>5
+      error('Only available for 2, 3, 4 and 5D tensor images.');
    end
    if length(sz)<3
       %#function expanddim
@@ -391,7 +391,7 @@ if ~isempty(in.pixelsize)
     AxisNames={'X','Y','Z','E','T'};
     AxisUnits=[in.pixelunits(1:3),'a.u.','a.u.'];
     for n=1:numel(ElementNum)
-        out.SetAxisScalesAndUnits(ElementNum(n), 0, 1.0, in.pixelsize(1),in.pixelsize(2),in.pixelsize(1),1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,'intensity', AxisNames,'a.u.', AxisUnits);
+        out.SetAxisScalesAndUnits(ElementNum(n), 0, 1.0, in.pixelsize(1),in.pixelsize(2),in.pixelsize(3),1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,'intensity', AxisNames,'a.u.', AxisUnits);
     end
 end
 

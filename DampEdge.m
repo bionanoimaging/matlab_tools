@@ -59,6 +59,11 @@ if ~isreal(im)
 end
 
 sizevector = size(im);
+if size(im,dim) == 1
+    de=im;  % do nothing
+    return
+end
+
 sizevector3D = size(im);
 sizevector2D(1) = sizevector(1);
 if length(sizevector2D)> 1
@@ -163,7 +168,7 @@ elseif method >= 2
         error('Gaussian blur of the edges is only allowed for square shape (shape=1)');
     end
     if ndims(im) < 4 && size(im,3) <= 1
-       im = squeeze(im);
+       im = reshape(im,[size(im,1),size(im,2)]);
     end
     im2 = im*0;
     sumw=im2+0;

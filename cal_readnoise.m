@@ -140,6 +140,9 @@ axis([0 ax(2) 0 ax(4)])
 g=gca;
 set(g,'FontSize',12)
 
+if ~isempty(rg)
+    rg = rg - bgMean;
+end
 %------------fit-----------------------------------------------
 if exist('fit')
    fprintf(' Weigthed fit\n');
