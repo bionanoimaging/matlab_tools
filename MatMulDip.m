@@ -11,6 +11,13 @@ function res=MatMulDip(myMat,myImg,myDim)
 if nargin < 3
     myDim=ndims(myImg);
 end
+DimVec=[];
+if myDim ~= ndims(myImg)
+    DimVec = [1 : ndims(myImg)];
+    DimVec(myDim) = ndims(myImg);
+    DimVec(ndims(myImg)) = myDim;
+    myImg = permute(myImg,DimVec);
+end
 
 % This is the old code. IT DOES NOT WORK FOR ARRAY SIZES > 10 !!
 % mixArray = newimar(size(myImg,myDim));
@@ -24,6 +31,9 @@ end
 sz = size(myImg);
 myImg=double(myImg);
 szm = size(myImg);
-szm(myDim)=size(myMat,1);
-res = dip_image(reshape(transpose(myMat * transpose(reshape(myImg,[prod(sz(1:myDim-1)),sz(myDim)]))),szm));
+szm(end)=size(myMat,1);
+res = dip_image(reshape(transpose(myMat * transpose(reshape(myImg,[prod(sz(1:end-1)),sz(end)]))),szm));
 
+if ~isempty(DimVec)
+    res = permute(res,DimVec);
+end

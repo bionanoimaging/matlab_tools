@@ -167,13 +167,13 @@ elseif method >= 2
     if shape == 0
         error('Gaussian blur of the edges is only allowed for square shape (shape=1)');
     end
-    if ndims(im) < 4 && size(im,3) <= 1
-       im = reshape(im,[size(im,1),size(im,2)]);
-    end
+    %if ndims(im) < 4 && size(im,3) <= 1
+    %   im = squeeze(im);
+    %end
     im2 = im*0;
     sumw=im2+0;
     maxw=im2+0;
-    if ndims(im) == 3 && size(im,3) > 1
+    if origdims == 3 && size(im,3) > 1
         % error('3d dimming not implemented yet');
         if (dim > 1)
             border=ceil(size(im,1)/2*(part/2));
@@ -275,9 +275,16 @@ elseif method >= 2
             maxw(:,:,end-(border-1):end)=tmp;
         end
         tmp=sumw>0;
-        im2(tmp)=im2(tmp)./sumw(tmp);
+        nominator = im2(tmp);
+        if ~isempty(nominator)
+            im2(tmp)=nominator./sumw(tmp);
+        end
         de=im2*maxw+im*(1-maxw);
-    elseif ndims(im)<=3 
+    elseif origdims<=3 
+        im = squeezedim(im,3);  % squeeze out the 3rd dimension leaving only 1 and 2 if necessary
+        im2 = squeezedim(im2,3);  % squeeze out the 3rd dimension leaving only 1 and 2 if necessary
+        sumw = squeezedim(sumw,3);  % squeeze out the 3rd dimension leaving only 1 and 2 if necessary
+        maxw = squeezedim(maxw,3);  % squeeze out the 3rd dimension leaving only 1 and 2 if necessary
         if (dim == 1 && ndims(im) < 2)
             border=ceil(size(im,1)/2*(part/2));
             if (border > 1)
@@ -375,8 +382,12 @@ elseif method >= 2
             tmp=max(maxw(:,end-(border-1):end),w);
             maxw(:,end-(border-1):end)=tmp;
         end
-        tmp=im2(sumw>0)./sumw(sumw>0);
-        im2(sumw>0)=tmp;
+        amask = sumw>0;
+        nominator = im2(sumw>0);
+        if ~isempty(nominator)  % This is due to DipImage 3 having problems with empty sets
+            tmp=nominator./sumw(sumw>0);
+            im2(sumw>0)=tmp;
+        end
         de=im2*maxw+im*(1-maxw);
     elseif ndims(im) == 4
         de=im*0;noiseFactor=im*0;  % The zeros lead to a copy and avoid a problem in cudaMat

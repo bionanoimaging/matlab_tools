@@ -13,11 +13,15 @@
 % beadsAt: The positions of all the clicks (precise to one pixel). Can be fed back into the algorithm.
 % AllParam: A matrix with all the fit paramters
 % subPixelShifts: The precise shifts used for the alignment between all the PSFs
+% allowOffsetCor: If 1, the offset will be corrected automatically fromt the Gaussian fit result. (default = 1)
 %
 % Example : [myPSF,FWHM,myResiduum,beadsAt,AllParam,subPixelShifts]=ExtractMultiPSF(myim,[16 16],[0.065 0.065],1,[])
 
-function [myPSF,FWHMs,myResiduum,beadsAt,AllParam,subPixelShifts]=ExtractMultiPSF(myim,mysize,Pixelsize,doIndivFit,beadsAt,allowXY,subPixelShifts)
+function [myPSF,FWHMs,myResiduum,beadsAt,AllParam,subPixelShifts]=ExtractMultiPSF(myim,mysize,Pixelsize,doIndivFit,beadsAt,allowXY,subPixelShifts, allowOffsetCor)
 % beadsAt=[180 504; 207 489; 253 236; 399 276; 262 54; 364 49; 393 168; 410 156; 300 139; 190 138; 376 282; 182 459; 333 449; 367 467; 415 453; 204 550; 175 579];
+if nargin < 8
+    allowOffsetCor=1;
+end
 if nargin < 7
     subPixelShifts={};
 end
@@ -65,9 +69,9 @@ end
 %[fittedSum,paramsSum,idiv,myfunct] = FitDataND('c(1)*exp(-((x{1}-c(2)).^2+(x{2}-c(3)).^2)/c(4))+c(5)',[max(sumBdsSum2D)-min(sumBdsSum2D) 0.1 0.1 (norm(mysize)/8)^2 min(sumBdsSum2D)],sumBdsSum2D,1000);
 %FWHM=sqrt(paramsSum(4))*Pixelsize(1) * 2*sqrt(log(2))  % to get FWHM
 if isempty(subPixelShifts)
-    [FWHMs,myPSF,myResiduum,paramsSum] = FitNDPSF(sumBdsSum,Pixelsize,[],allowXY);
+    [FWHMs,myPSF,myResiduum,paramsSum] = FitNDPSF(sumBdsSum,Pixelsize,[],allowXY,1,allowOffsetCor);
 else
-    [FWHMs,myPSF,myResiduum,paramsSum] = FitNDPSF(sumBdsSum,Pixelsize,[],allowXY,0); % No centering of PSF!
+    [FWHMs,myPSF,myResiduum,paramsSum] = FitNDPSF(sumBdsSum,Pixelsize,[],allowXY,0,allowOffsetCor); % No centering of PSF!
 end
 FWHMs=abs(FWHMs);
 fprintf('Sum Beads, FWHM is ');

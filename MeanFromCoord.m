@@ -3,12 +3,18 @@ function [sumBds,mybds,sumBds2,mybds2,si]=MeanFromCoord(myres,beadsAt,s,myres2,s
 if nargin < 5
     si={};
 end
-myres=squeeze(myres);  % get rid of an empty 3rd dimension
+myres=squeeze(myres);  % get rid of an empty dimensions (This is not quite correct!)
 
 if numel(s) < ndims(myres)
     s(size(s,2)+1:ndims(myres))=s(1);
     fprintf('Warning: Not all sizes for the extraction ROI were given. Using the first size for remaining dimensions\n');
 end
+if numel(s) > ndims(myres)
+    s(ndims(myres)+1:end)=1;
+    myres = expanddim(myres,numel(s));
+    fprintf('Warning: Sizes for the extraction ROI had more dimensions than image. Setting extra ROI sizes to one.\n');
+end
+    
 
 %mybds=newim([s size(beadsAt,1)]);
 %mybds2=newim([s size(beadsAt,1)]);
@@ -17,7 +23,7 @@ mybds2={};
 
 for b=1:size(beadsAt,1)
     mypos=beadsAt(b,:);
-    mybead=extract(squeeze(myres),s,mypos);
+    mybead=extract(myres,s,mypos);
     mybds{b}=DampEdge(mybead,0.4,2,1,2);
     if nargin > 3 && ~isempty(myres2)
         mybead2=extract(squeeze(myres2),s,mypos);

@@ -1,4 +1,7 @@
-% function polImg=CartImg2Pol(img) : tranfers an image on cartesian coordinates to polar coordinates. The radius always steps in distance of one.
+% function polImg=CartImg2Pol(img,asize,acenter,rrange) : tranfers an image on cartesian coordinates to polar coordinates. The radius always steps in distance of one.
+% asize : size of the final result
+% acenter : center where of the transform
+% rrange : range of r values in pixels [from:to]
 
 function myrad=CartImg2Pol(img,asize,acenter,rrange)
 global cuda_enabled;

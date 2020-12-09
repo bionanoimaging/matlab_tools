@@ -239,6 +239,7 @@ if strcmp(whe,'newElement')
         end
     end
     out = myViewer;
+    out.setElement(-1); % go to last element
     return
   end
 end
@@ -292,7 +293,8 @@ if direct
           out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));          
           ElementNum = out.getNumElements()-1;
           out.ProcessKeyMainWindow('O'); % logarithmic display mode
-          out.ProcessKeyMainWindow('e'); % advance an element
+          out.setElement(-1); % go to last element
+          % out.ProcessKeyMainWindow('E'); % devance an element
           for q=1:12
               out.ProcessKeyMainWindow('c'); % cyclic colormap
           end
@@ -304,11 +306,13 @@ if direct
       elseif strcmp(whe,'newTime')
           myViewer.setTimesLinked(0);
           out = myViewer.AddTime(in5df,sz(1),sz(2),sz(3),sz(4),sz(5));
+          out.setTime(-1); % go to last etime
           myphase = dip_array(reshape(angle(in),1,prod(sz)));
           out = out.AddElement(myphase,sz(1),sz(2),sz(3),sz(4),sz(5));          
+          out.setElement(-1); % go to last element
           ElementNum = out.getNumElements()-1;
           out.ProcessKeyMainWindow('O'); % logarithmic display mode
-          out.ProcessKeyMainWindow('e'); % advance an element
+          % out.ProcessKeyMainWindow('e'); % advance an element
           for q=1:12
               out.ProcessKeyMainWindow('c'); % cyclic colormap
           end
@@ -356,13 +360,18 @@ if direct
       if strcmp(whe,'direct')
           out = View5D.Start5DViewer(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
           ElementNum = [0:out.getNumElements()-1];
+          TimeNum = out.getNumTime()-1;
       elseif strcmp(whe,'newElement')          
           out = myViewer.AddElement(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+          myViewer.setElement(-1);
           ElementNum = out.getNumElements()-1;
+          TimeNum = out.getNumTime()-1;
       elseif strcmp(whe,'newTime')          
           myViewer.setTimesLinked(0);
           out = myViewer.AddTime(in5d,sz(1),sz(2),sz(3),sz(4),sz(5));
+          myViewer.setTime(-1);
           ElementNum = out.getNumElements()-1;
+          TimeNum = out.getNumTime()-1;
       elseif strcmp(whe,'replaceElement')
           out = myViewer;
           NumTimes = out.getNumTime();
@@ -391,7 +400,7 @@ if ~isempty(in.pixelsize)
     AxisNames={'X','Y','Z','E','T'};
     AxisUnits=[in.pixelunits(1:3),'a.u.','a.u.'];
     for n=1:numel(ElementNum)
-        out.SetAxisScalesAndUnits(ElementNum(n), 0, 1.0, in.pixelsize(1),in.pixelsize(2),in.pixelsize(3),1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,'intensity', AxisNames,'a.u.', AxisUnits);
+        out.SetAxisScalesAndUnits(ElementNum(n), TimeNum, 1.0, in.pixelsize(1),in.pixelsize(2),in.pixelsize(3),1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,'intensity', AxisNames,'a.u.', AxisUnits);
     end
 end
 
