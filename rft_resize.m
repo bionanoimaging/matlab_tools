@@ -15,6 +15,10 @@ end
 if length(afactor) == 1
     afactor=repmat(afactor,[1 ndims(myrft)]);
 end
+isdip = isa(myrft,'dip_image');
+if ~isdip
+    myrft=dip_image(myrft);
+end
 oldsize=size(myrft);
 midold=floor(oldsize/2);
 newsize=floor(afactor.*oldsize);
@@ -59,4 +63,8 @@ elseif ndims(myrft)==4  % only do it for each element
     end
 else
     error('rft_resize: unsupported number of dimensions');
+end
+
+if ~isdip
+    resized=double(resized);
 end
